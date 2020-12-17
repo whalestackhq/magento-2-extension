@@ -1,0 +1,3 @@
+.coinqvest-admin-config .heading {background: url("../img/cq-logo.png") no-repeat 0 50% / 18rem auto; padding-left: 20rem; padding-right: 15rem}
+.coinqvest-admin-config .button-container {float: right;}
+.coinqvest-admin-config.section-config.active > .admin__collapsible-block + input + fieldset { margin-left: 40px; }
