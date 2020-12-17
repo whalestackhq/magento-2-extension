@@ -1,0 +1,18 @@
+.payment-method .coinqvestLogo img {
+    width: 30px;
+    height: 30px;
+}
+.payment-method-redirect-message{
+    background-color: #fafafa;
+    padding: 25px 50px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
