@@ -76,7 +76,7 @@ class Webhook extends Action
                 $result = $this->jsonResultFactory->create();
                 $result->setHttpResponseCode(400);
                 $result->setData(['success' => false, 'message' => __('Something went wrong.')]);
-                exit;
+                return $result;
             }
 
             /**
