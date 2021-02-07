@@ -4,7 +4,7 @@
         <section id="payment" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1000" translate="label">
             <group id="coinqvest_paymentgateway" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="3" translate="label">
                 <label>COINQVEST</label>
-                <comment>Accept payments in crypto (BTC, ETH, XRP, XLM, LTC) and instantly settle in your local currency (USD, EUR, CAD, NGN, BRL).</comment>
+                <comment>Accept payments in crypto (BTC, ETH, XRP, XLM, LTC) and instantly settle in your local currency (USD, EUR, NGN, BRL) or cryptocurrency.</comment>
 
                 <fieldset_css>complex coinqvest-admin-config</fieldset_css>
                 <frontend_model>Coinqvest\PaymentGateway\Model\Adminhtml\Fieldset</frontend_model>
@@ -31,6 +31,11 @@
                     <label>Settlement Currency</label>
                     <source_model>Coinqvest\PaymentGateway\Model\Source\SettlementCurrencies</source_model>
                     <comment>The currency that the crypto payments get converted to. If you don't choose a currency here, the settlement currency will be the billing currency. API credentials must be provided before currency options show up.</comment>
+                </field>
+                <field id="checkout_language" translate="label" type="select" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Checkout Language</label>
+                    <source_model>Coinqvest\PaymentGateway\Model\Source\CheckoutLanguages</source_model>
+                    <comment>The language that your checkout page will display in. Choose 'auto' to automatically detect the customer's main browser language. Fallback language code is 'en'.</comment>
                 </field>
                 <field id="price_display_method" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Cart Price Display Method</label>

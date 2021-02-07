@@ -5,7 +5,7 @@ namespace Coinqvest\PaymentGateway\Model\Source;
 use Magento\Store\Model\ScopeInterface;
 use Coinqvest\PaymentGateway\Api;
 
-class SettlementCurrencies
+class CheckoutLanguages
 {
 
     /**
@@ -26,13 +26,14 @@ class SettlementCurrencies
 
     public function toOptionArray()
     {
-        return $this->getSettlementCurrencies();
+        return $this->getCheckoutLanguages();
     }
 
-    public function getSettlementCurrencies()
+    public function getCheckoutLanguages()
     {
-        $currencies = array(
-            array('value' => '0', 'label' => 'Please select...')
+        $languages = array(
+            array('value' => '0', 'label' => 'Please select...'),
+            array('value' => 'auto', 'label' => 'auto - Automatic')
         );
 
         /**
@@ -46,40 +47,26 @@ class SettlementCurrencies
                 $this->apiSecret
             );
 
-            $response = $client->get('/fiat-currencies');
-            $fiat_currencies = json_decode($response->responseBody);
+            $response = $client->get('/languages');
+            $langs = json_decode($response->responseBody);
 
             if ($response->httpStatusCode == 200)
             {
-                foreach ($fiat_currencies->fiatCurrencies as $currency)
+                foreach ($langs->languages as $lang)
                 {
                     array_push(
-                        $currencies,
-                        array('value' => $currency->assetCode, 'label' => $currency->assetCode . ' - ' . $currency->assetName)
+                        $languages,
+                        array('value' => $lang->languageCode, 'label' => $lang->languageCode . ' - ' . $lang->name)
                     );
                 }
 
             }
+            
 
-            $response = $client->get('/blockchains');
-            $chains = json_decode($response->responseBody);
-
-            if ($response->httpStatusCode == 200)
-            {
-                foreach ($chains->blockchains as $blockchain)
-                {
-                    array_push(
-                        $currencies,
-                        array('value' => $blockchain->nativeAssetCode, 'label' => $blockchain->nativeAssetCode . ' - ' . $blockchain->nativeAssetName)
-                    );
-                }
-
-            }
 
         }
 
-        return $currencies;
+        return $languages;
     }
-
 
 }

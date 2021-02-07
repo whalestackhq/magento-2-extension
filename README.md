@@ -10,6 +10,7 @@ This module for Magentor implements the PHP REST API documented at https://www.c
 * Instantly settles in your preferred national currency (USD, EUR, NGN, BRL).
 * Integrates seemlessly into WooCommerce
 * Sets the product price in your national currency.
+* Sets the checkout page in your preferred language.
 * Automatically generates invoices.
 * Eliminates chargebacks and gives you control over refunds.
 * Eliminates currency volatility risks due to instant conversions and settlement.

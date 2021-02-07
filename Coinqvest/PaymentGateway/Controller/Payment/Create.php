@@ -50,8 +50,7 @@ class Create extends Action
 
         $client = new Api\CQMerchantClient(
             $apiKey,
-            $apiSecret,
-            false
+            $apiSecret
         );
 
         /**
@@ -94,6 +93,7 @@ class Create extends Action
 
         $displayMethod = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/price_display_method', ScopeInterface::SCOPE_STORE);
         $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
+        $checkoutLanguage = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_language', ScopeInterface::SCOPE_STORE);
 
         if ($displayMethod == 'simple') {
 
@@ -105,6 +105,7 @@ class Create extends Action
         }
 
         $checkout['settlementCurrency'] = ($settlementCurrency == '0' || is_null($settlementCurrency)) ? null : $settlementCurrency;
+        $checkout['checkoutLanguage'] = ($checkoutLanguage == '0' || is_null($checkoutLanguage)) ? null : $checkoutLanguage;
         $checkout['webhook'] = $this->urlBuilder->getUrl('coinqvest/payment/webhook');
         $checkout['links']['cancelUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/cancel', ['order_id' => $order->getId()]);
         $checkout['links']['returnUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/success');

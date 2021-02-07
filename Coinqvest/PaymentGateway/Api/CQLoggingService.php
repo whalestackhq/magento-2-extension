@@ -17,7 +17,12 @@ class CQLoggingService {
      */
     public static function write($data, $title = null) {
 
-        $logFile = $_SERVER["DOCUMENT_ROOT"] . '/app/code/Coinqvest/PaymentGateway/Log/Coinqvest.log';
+        $path = $_SERVER["DOCUMENT_ROOT"] . '/app/code/Coinqvest/PaymentGateway/Log/';
+        $logFile = $path . 'Coinqvest.log';
+
+        if (!file_exists($logFile) && !is_writable($logFile)) {
+            return;
+        }
 
         $type = file_exists($logFile) ? 'a' : 'w';
         $file = fopen($logFile, $type);
