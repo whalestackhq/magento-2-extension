@@ -61,14 +61,14 @@ class Create extends Action
 
         $customer = array(
             'email' => $billingAddress['email'],
-            'firstname' => $billingAddress['firstname'],
-            'lastname' => $billingAddress['lastname'],
-            'company' => $billingAddress['company'],
-            'adr1' => $billingAddress['street'],
-            'zip' => $billingAddress['postcode'],
-            'city' => $billingAddress['city'],
-            'countrycode' => $billingAddress['country_id'],
-            'phonenumber' => $billingAddress['telephone'],
+            'firstname' => !empty($billingAddress['firstname']) ? $billingAddress['firstname'] : null,
+            'lastname' => !empty($billingAddress['lastname']) ? $billingAddress['lastname'] : null,
+            'company' => !empty($billingAddress['company']) ? $billingAddress['company'] : null,
+            'adr1' => !empty($billingAddress['street']) ? $billingAddress['street'] : null,
+            'zip' => !empty($billingAddress['postcode']) ? $billingAddress['postcode'] : null,
+            'city' => !empty($billingAddress['city']) ? $billingAddress['city'] : null,
+            'countrycode' => !empty($billingAddress['country_id']) ? $billingAddress['country_id'] : null,
+            'phonenumber' => !empty($billingAddress['telephone']) ? $billingAddress['telephone'] : null,
             'meta' => array(
                 'source' => 'Magento',
                 'customerId' => $order->getCustomerId()
