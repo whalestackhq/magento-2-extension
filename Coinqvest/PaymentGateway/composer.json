@@ -2,7 +2,7 @@
     "name": "coinqvest/paymentgateway",
     "description": "COINQVEST Enterprise Cryptocurrency Payment Processing for Magento 2",
     "type": "magento2-module",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "keywords": [
         "coinqvest", "payment", "crypto", "cryptocurrencies", "bitcoin", "btc", "ethereum", "eth", "stellar lumens", "xlm", "litecoin", "ltc", "ripple", "xrp", "altcoin", "altcoins"
     ],

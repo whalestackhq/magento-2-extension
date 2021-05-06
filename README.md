@@ -41,6 +41,8 @@ This module for Magentor implements the PHP REST API documented at https://www.c
     php bin/magento setup:static-content:deploy –f
    
     php bin/magento cache:flush
+    
+    rm -rf var/cache var/generation var/di var/page_cache generated/*
   
     ```
    
