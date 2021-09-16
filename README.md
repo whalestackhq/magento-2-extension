@@ -2,13 +2,14 @@
 
 This is the official Magento module for COINQVEST. Accept and settle payments in digital currencies in your Magento shop.
 
-This module for Magentor implements the PHP REST API documented at https://www.coinqvest.com/en/api-docs
+This extension for Magento 2 implements the PHP REST API documented at https://www.coinqvest.com/en/api-docs
 
 ## Key Features
 
 * Accepts Bitcoin (BTC), Ethereum (ETH), Ripple (XRP), Stellar Lumens (XLM) and Litecoin (LTC) payments from customers.
-* Instantly settles in your preferred national currency (USD, EUR, NGN, BRL).
-* Integrates seemlessly into WooCommerce
+* Instantly settles in your preferred national currency (USD, EUR, ARS, BRL, NGN).
+* Sets the product price in your national currency - 45 fiat currencies are available, see full list [here](https://www.coinqvest.com/en/api-docs#get-exchange-rate-global).
+* Integrates seemlessly into Magento 2
 * Sets the product price in your national currency.
 * Sets the checkout page in your preferred language.
 * Automatically generates invoices.
@@ -16,6 +17,10 @@ This module for Magentor implements the PHP REST API documented at https://www.c
 * Eliminates currency volatility risks due to instant conversions and settlement.
 * Translates the plugin into any required language.
 * Includes payment state management for underpaid and completed payments.
+
+## Supported Shop Currencies
+
+Argentine Peso (ARS), Australian Dollar (AUD), Bahraini Dinar (BHD), Bangladeshi Taka (BDT), Bermudian Dollar (BMD), Bitcoin (BTC), Brazilian Real (BRL), British Pound (GBP), Canadian Dollar (CAD), Chilean Peso (CLP), Chinese Yuan (CNY), Czech Koruna (CZK), Danish Krone (DKK), Emirati Dirham (AED), Ethereum (ETH), Euro (EUR), Hong Kong Dollar (HKD), Hungarian Forint (HUF), Indian Rupee (INR), Indonesian Rupiah (IDR), Israeli Shekel (ILS), Japanese Yen (JPY), Korean Won (KRW), Kuwaiti Dinar (KWD), Litecoin (LTC), Malaysian Ringgit (MYR), Mexican Peso (MXN), Myanmar Kyat (MMK), New Zealand Dollar (NZD), Nigerian Naira (NGN), Norwegian Krone (NOK), Pakistani Rupee (PKR), Philippine Peso (PHP), Polish Zloty (PLN), Ripple (XRP), Russian Ruble (RUB), Saudi Arabian Riyal (SAR), Singapore Dollar (SGD), South African Rand (ZAR), Sri Lankan Rupee (LKR), Stellar (XLM), Swedish Krona (SEK), Swiss Franc (CHF), Taiwan Dollar (TWD), Thai Baht (THB), Turkish Lira (TRY), Ukrainian Hryvnia (UAH), US Dollar (USD), Venezuelan Bolivar (VEF), Vietnamese Dong (VND)
 
 ## Requirements
 
