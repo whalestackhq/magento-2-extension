@@ -1,6 +1,6 @@
 # COINQVEST Extension for Magento 2
 
-This is the official Magento module for COINQVEST. Accept and settle payments in digital currencies in your Magento shop.
+This is the official Magento en for the COINQVEST [cryptocurrency payment gateway](https://www.coinqvest.com). Accept and settle payments in digital currencies in your Magento shop.
 
 This extension for Magento 2 implements the PHP REST API documented at https://www.coinqvest.com/en/api-docs
 
