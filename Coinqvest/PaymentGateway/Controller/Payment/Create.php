@@ -12,6 +12,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Psr\Log\LoggerInterface;
 use Coinqvest\PaymentGateway\Api;
+use Coinqvest\PaymentGateway\Helper\Data;
 
 class Create extends Action
 {
@@ -20,6 +21,8 @@ class Create extends Action
     private $logger;
     private $scopeConfig;
     protected $urlBuilder;
+    protected $apiKey;
+    protected $apiSecret;
 
     public function __construct(
         Context $context,
@@ -27,15 +30,20 @@ class Create extends Action
         JsonFactory $resultJsonFactory,
         UrlInterface $urlBuilder,
         ScopeConfigInterface $scopeConfig,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Data $helper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->urlBuilder = $urlBuilder;
         $this->logger = $logger;
         $this->scopeConfig = $scopeConfig;
+        $this->helper = $helper;
+        $this->apiKey = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/api_key', ScopeInterface::SCOPE_STORE);
+        $this->apiSecret = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/api_secret', ScopeInterface::SCOPE_STORE);
         parent::__construct($context);
     }
+
 
     public function execute()
     {
@@ -45,10 +53,7 @@ class Create extends Action
          * Init the COINQVEST API
          */
 
-        $apiKey = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/api_key', ScopeInterface::SCOPE_STORE);
-        $apiSecret = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/api_secret', ScopeInterface::SCOPE_STORE);
-
-        $client = new Api\CQMerchantClient($apiKey, $apiSecret);
+        $client = new Api\CQMerchantClient($this->apiKey, $this->apiSecret);
 
         /**
          * Create a customer first
@@ -93,18 +98,16 @@ class Create extends Action
         $quoteCurrency = $order->getOrderCurrencyCode();
         $exchangeRate = null;
 
-        $isFiat = $this->isFiat($client, $quoteCurrency);
-        $isBlockchain = $this->isBlockchain($client, $quoteCurrency);
-
-        if (!$isFiat && !$isBlockchain) {
+        if ($this->helper->isCustomOrderCurrency($this->apiKey, $this->apiSecret, $quoteCurrency)) {
 
             $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
 
             if ($settlementCurrency == '0' || is_null($settlementCurrency)) {
-                Api\CQLoggingService::write($response->responseBody, 'Please define a settlement currency in the COINQVEST payment plugin.');
-                $this->logger->critical('Please define a settlement currency in the COINQVEST payment plugin.', ['exception' => $response->responseBody]);
+                Api\CQLoggingService::write($response->responseBody, 'Please define a settlement currency in the COINQVEST payment extension.');
+                $this->logger->critical('Please define a settlement currency in the COINQVEST payment extension.', ['exception' => $response->responseBody]);
                 throw new LocalizedException(__($response->responseBody));
             }
+
 
             /**
              * Get the exchange rate between billing and settlement currency
@@ -114,6 +117,16 @@ class Create extends Action
                 'quoteCurrency' => $quoteCurrency,
                 'baseCurrency' => $settlementCurrency
             );
+
+            // override if settlement option is ORIGIN
+            $displayCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_display_currency', ScopeInterface::SCOPE_STORE);
+
+            if ($settlementCurrency == 'ORIGIN') {
+                $pair = array(
+                    'quoteCurrency' => $quoteCurrency,
+                    'baseCurrency' => $displayCurrency
+                );
+            }
 
             $response = $client->get('/exchange-rate-global', $pair);
             if ($response->httpStatusCode != 200) {
@@ -132,7 +145,7 @@ class Create extends Action
             }
 
             // set the new billing currency accordingly
-            $quoteCurrency = $settlementCurrency;
+            $quoteCurrency = ($settlementCurrency == 'ORIGIN') ? $displayCurrency : $settlementCurrency;
 
         }
 
@@ -151,7 +164,30 @@ class Create extends Action
         } else {
 
             $checkout = $this->buildDetailedCheckoutObject($order, $quoteCurrency);
+
+            /**
+             * Validate the checkout object
+             * If Magento grand order total does not match CQs charge total, use simple checkout object
+             * This might happen due to Magento's numerous tax settings
+             */
+
+            $response = $client->post('/checkout/validate-checkout-charge', $checkout);
+
+            if ($response->httpStatusCode != 200)
+            {
+                Api\CQLoggingService::write($response->responseBody, 'COINQVEST checkout charge could not be validated.');
+                $this->logger->critical('COINQVEST checkout charge could not be validated', ['exception' => $response->responseBody]);
+                throw new LocalizedException(__($response->responseBody));
+            }
+
+            $data = json_decode($response->responseBody, true);
+
+            if ($order->getGrandTotal() != $data['total']) {
+                $checkout = $this->buildSimpleCheckoutObject($order, $quoteCurrency);
+            }
+
         }
+
 
         $checkout['settlementCurrency'] = ($settlementCurrency == '0' || is_null($settlementCurrency)) ? null : $settlementCurrency;
         $checkout['checkoutLanguage'] = ($checkoutLanguage == '0' || is_null($checkoutLanguage)) ? null : $checkoutLanguage;
@@ -168,7 +204,7 @@ class Create extends Action
 
         if (!is_null($exchangeRate)) {
 
-            $checkout = $this->overrideCheckoutValues($checkout, $exchangeRate);
+            $checkout = $this->overrideCheckoutValues($checkout, $exchangeRate, $displayCurrency);
 
             $newLineItem = array(
                 'description' => sprintf(__('Exchange Rate 1 %1s = %2s %3s'), $order->getOrderCurrencyCode(), $this->numberFormat(1/$exchangeRate, 7), $quoteCurrency),
@@ -182,6 +218,9 @@ class Create extends Action
 
         }
 
+        /**
+         * Send the checkout
+         */
 
         $response = $client->post('/checkout/hosted', $checkout);
 
@@ -200,7 +239,6 @@ class Create extends Action
 
         $order->setCoinqvestCheckoutId($data['id']);
         $order->save();
-
 
         /**
          * The checkout was created, redirect user to hosted checkout page
@@ -225,7 +263,7 @@ class Create extends Action
             "currency" => $quoteCurrency,
             "lineItems" => array(
                 array(
-                    "description" => "Magento Order #" . $order->getIncrementId(),
+                    "description" => "Order No. " . $order->getIncrementId(),
                     "netAmount" => $order->getGrandTotal()
                 )
             )
@@ -258,26 +296,23 @@ class Create extends Action
 
         /**
          * Discount items
+         *
          */
 
         if ($order->getDiscountAmount() != "0")
         {
+            // $order->getDiscountAmount() includes tax, but $netAmount must be a net value
+            $taxRate = $order->getAllVisibleItems()[0]->getTaxPercent();
+            $discountAmount = abs($order->getDiscountAmount());
+
+            $netAmount = (isset($taxRate) && $taxRate > 0) ? $discountAmount / (1 + ( $taxRate / 100)) : $discountAmount;
+
             $discountItem = array(
                 "description" => $order->getDiscountDescription(),
-                "netAmount" => abs($order->getDiscountAmount())
+                "netAmount" => $netAmount
             );
             array_push($discountItems, $discountItem);
         }
-
-        /**
-         * Tax items
-         */
-
-        $taxItem = array(
-            "name" => "Tax",
-            "percent" => $order->getAllVisibleItems()[0]->getTaxPercent() / 100
-        );
-        array_push($taxItems, $taxItem);
 
         /**
          * Shipping cost items
@@ -289,6 +324,16 @@ class Create extends Action
             "taxable" => $order->getShippingTaxAmount() > 0 ? true : false
         );
         array_push($shippingCostItems, $shippingCostItem);
+
+        /**
+         * Tax items
+         */
+
+        $taxItem = array(
+            "name" => "Tax",
+            "percent" => $order->getAllVisibleItems()[0]->getTaxPercent() / 100
+        );
+        array_push($taxItems, $taxItem);
 
         /**
          * Put it all together
@@ -306,41 +351,9 @@ class Create extends Action
 
     }
 
-    private function isFiat($client, $assetCode) {
+    private function overrideCheckoutValues($checkout, $exchangeRate, $displayCurrency) {
 
-        $isFiat = false;
-        $response = $client->get('/fiat-currencies');
-        $response = json_decode($response->responseBody);
-        if (isset($response->fiatCurrencies)) {
-            foreach ($response->fiatCurrencies as $fiat) {
-                if ($fiat->assetCode == $assetCode) {
-                    $isFiat = true;
-                }
-            }
-        }
-        return $isFiat;
-
-    }
-
-    private function isBlockchain($client, $assetCode) {
-
-        $isBlockchain = false;
-        $response = $client->get('/blockchains');
-        $response = json_decode($response->responseBody);
-        if (isset($response->blockchains)) {
-            foreach ($response->blockchains as $blockchain) {
-                if ($blockchain->nativeAssetCode == $assetCode) {
-                    $isBlockchain = true;
-                }
-            }
-        }
-        return $isBlockchain;
-
-    }
-
-    private function overrideCheckoutValues($checkout, $exchangeRate) {
-
-        $checkout['charge']['currency'] = $checkout['settlementCurrency'];
+        $checkout['charge']['currency'] = ($checkout['settlementCurrency'] == 'ORIGIN') ? $displayCurrency : $checkout['settlementCurrency'];
 
         if (isset($checkout['charge']['lineItems']) && !empty($checkout['charge']['lineItems'])) {
             foreach ($checkout['charge']['lineItems'] as $key => $item) {

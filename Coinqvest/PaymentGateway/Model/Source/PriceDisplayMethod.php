@@ -7,8 +7,8 @@ class PriceDisplayMethod
     public function toOptionArray()
     {
         return array(
-            array('value' => 'detailed', 'label' => 'Detailed - All items, discounts, tax, shipping cost'),
-            array('value' => 'simple', 'label' => 'Simple - Grand order total only')
+            array('value' => 'simple', 'label' => 'Order Total'),
+            array('value' => 'detailed', 'label' => 'Detailed - All items, discounts, tax, shipping cost')
         );
     }
 }
