@@ -147,10 +147,9 @@ class Data extends AbstractHelper
 
     }
 
-
     public function writeToLog($data, $title = null)
     {
-        $logFile = $_SERVER["DOCUMENT_ROOT"] . '/app/code/Coinqvest/PaymentGateway/Log/Coinqvest.log';
+        $logFile = $_SERVER["DOCUMENT_ROOT"] . '/vendor/coinqvest/paymentgateway/Log/Coinqvest.log';
 
         $type = file_exists($logFile) ? 'a' : 'w';
         $file = fopen($logFile, $type);
