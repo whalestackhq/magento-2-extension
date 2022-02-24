@@ -96,11 +96,15 @@ class Create extends Action
          */
 
         $quoteCurrency = $order->getOrderCurrencyCode();
+        $displayMethod = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/price_display_method', ScopeInterface::SCOPE_STORE);
+        $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
+        $displayCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_display_currency', ScopeInterface::SCOPE_STORE);
+        // if not available, set display currency default to USD
+        $displayCurrency = is_null($displayCurrency) ? 'USD' : $displayCurrency;
+        $checkoutLanguage = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_language', ScopeInterface::SCOPE_STORE);
         $exchangeRate = null;
 
         if ($this->helper->isCustomOrderCurrency($this->apiKey, $this->apiSecret, $quoteCurrency)) {
-
-            $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
 
             if ($settlementCurrency == '0' || is_null($settlementCurrency)) {
                 Api\CQLoggingService::write($response->responseBody, 'Please define a settlement currency in the COINQVEST payment extension.');
@@ -119,8 +123,6 @@ class Create extends Action
             );
 
             // override if settlement option is ORIGIN
-            $displayCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_display_currency', ScopeInterface::SCOPE_STORE);
-
             if ($settlementCurrency == 'ORIGIN') {
                 $pair = array(
                     'quoteCurrency' => $quoteCurrency,
@@ -152,10 +154,6 @@ class Create extends Action
         /**
          * Build the checkout object
          */
-
-        $displayMethod = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/price_display_method', ScopeInterface::SCOPE_STORE);
-        $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
-        $checkoutLanguage = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_language', ScopeInterface::SCOPE_STORE);
 
         if ($displayMethod == 'simple') {
 

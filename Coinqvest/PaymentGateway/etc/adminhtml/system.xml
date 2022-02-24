@@ -48,7 +48,7 @@
                 <field id="price_display_method" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Cart Price Display Method</label>
                     <source_model>Coinqvest\PaymentGateway\Model\Source\PriceDisplayMethod</source_model>
-                    <comment><![CDATA[- "Order Total" displays the total order amount on the COINQVEST checkout page. <br />- "Detailed" displays all line items, shipping costs, taxes, discounts on the COINQVEST checkout page.]]></comment>
+                    <comment><![CDATA[- "Detailed" displays all line items, shipping costs, taxes, discounts on the COINQVEST checkout page. <br />- "Order Total" displays the total order amount on the COINQVEST checkout page.]]></comment>
                 </field>
                 <field id="show_logo" showInDefault="1" showInStore="1" showInWebsite="0" sortOrder="62" translate="label" type="select">
                     <label>Show COINQVEST Logo</label>
