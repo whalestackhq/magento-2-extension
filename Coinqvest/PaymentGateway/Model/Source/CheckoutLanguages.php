@@ -36,16 +36,9 @@ class CheckoutLanguages
             array('value' => 'auto', 'label' => 'auto - Automatic')
         );
 
-        /**
-         * Init COINQVEST API
-         */
-
         if (!empty($this->apiKey) && !empty($this->apiSecret))
         {
-            $client = new Api\CQMerchantClient(
-                $this->apiKey,
-                $this->apiSecret
-            );
+            $client = new Api\CQMerchantClient($this->apiKey, $this->apiSecret);
 
             $response = $client->get('/languages');
             $langs = json_decode($response->responseBody);
@@ -59,13 +52,8 @@ class CheckoutLanguages
                         array('value' => $lang->languageCode, 'label' => $lang->languageCode . ' - ' . $lang->name)
                     );
                 }
-
             }
-            
-
-
         }
-
         return $languages;
     }
 
