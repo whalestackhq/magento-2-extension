@@ -78,78 +78,24 @@ class Create extends Action
         );
 
         $response = $client->post('/customer', array('customer' => $customer));
-
         if ($response->httpStatusCode != 200)
         {
             Api\CQLoggingService::write($response->responseBody, 'COINQVEST customer could not be created');
             $this->logger->critical('COINQVEST customer could not be created', ['exception' => $response->responseBody]);
             throw new LocalizedException(__($response->responseBody));
         }
-
         $data = json_decode($response->responseBody, true);
         $customerId = $data['customerId']; // use this to associate a checkout with this customer
-
 
         /**
          * Check if order currency is a supported fiat or blockchain currency
          * If not, the settlement currency will then be used as the new billing currency
          */
 
-        $quoteCurrency = $order->getOrderCurrencyCode();
+        $billingCurrency = $order->getOrderCurrencyCode();
         $displayMethod = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/price_display_method', ScopeInterface::SCOPE_STORE);
-        $settlementCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
-        $displayCurrency = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_display_currency', ScopeInterface::SCOPE_STORE);
-        // if not available, set display currency default to USD
-        $displayCurrency = is_null($displayCurrency) ? 'USD' : $displayCurrency;
+        $settlementAsset = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/settlement_currency', ScopeInterface::SCOPE_STORE);
         $checkoutLanguage = $this->scopeConfig->getValue('payment/coinqvest_paymentgateway/checkout_language', ScopeInterface::SCOPE_STORE);
-        $exchangeRate = null;
-
-        if ($this->helper->isCustomOrderCurrency($this->apiKey, $this->apiSecret, $quoteCurrency)) {
-
-            if ($settlementCurrency == '0' || is_null($settlementCurrency)) {
-                Api\CQLoggingService::write($response->responseBody, 'Please define a settlement currency in the COINQVEST payment extension.');
-                $this->logger->critical('Please define a settlement currency in the COINQVEST payment extension.', ['exception' => $response->responseBody]);
-                throw new LocalizedException(__($response->responseBody));
-            }
-
-
-            /**
-             * Get the exchange rate between billing and settlement currency
-             */
-
-            $pair = array(
-                'quoteCurrency' => $quoteCurrency,
-                'baseCurrency' => $settlementCurrency
-            );
-
-            // override if settlement option is ORIGIN
-            if ($settlementCurrency == 'ORIGIN') {
-                $pair = array(
-                    'quoteCurrency' => $quoteCurrency,
-                    'baseCurrency' => $displayCurrency
-                );
-            }
-
-            $response = $client->get('/exchange-rate-global', $pair);
-            if ($response->httpStatusCode != 200) {
-                Api\CQLoggingService::write($response->responseBody, 'Exchange rate not available. Please try again');
-                $this->logger->critical('Exchange rate not available. Please try again', ['exception' => $response->responseBody]);
-                throw new LocalizedException(__($response->responseBody));
-            }
-
-            $response = json_decode($response->responseBody);
-            $exchangeRate = $response->exchangeRate;
-
-            if ($exchangeRate == null || $exchangeRate == 0) {
-                Api\CQLoggingService::write($response->responseBody, 'Conversion problem. Please contact the vendor.');
-                $this->logger->critical('Conversion problem. Please contact the vendor.', ['exception' => $response->responseBody]);
-                throw new LocalizedException(__($response->responseBody));
-            }
-
-            // set the new billing currency accordingly
-            $quoteCurrency = ($settlementCurrency == 'ORIGIN') ? $displayCurrency : $settlementCurrency;
-
-        }
 
         /**
          * Build the checkout object
@@ -157,11 +103,11 @@ class Create extends Action
 
         if ($displayMethod == 'simple') {
 
-            $checkout = $this->buildSimpleCheckoutObject($order, $quoteCurrency);
+            $checkout = $this->buildSimpleCheckoutObject($order, $billingCurrency);
 
         } else {
 
-            $checkout = $this->buildDetailedCheckoutObject($order, $quoteCurrency);
+            $checkout = $this->buildDetailedCheckoutObject($order, $billingCurrency);
 
             /**
              * Validate the checkout object
@@ -170,7 +116,6 @@ class Create extends Action
              */
 
             $response = $client->post('/checkout/validate-checkout-charge', $checkout);
-
             if ($response->httpStatusCode != 200)
             {
                 Api\CQLoggingService::write($response->responseBody, 'COINQVEST checkout charge could not be validated.');
@@ -180,55 +125,35 @@ class Create extends Action
 
             $data = json_decode($response->responseBody, true);
 
-            if ($order->getGrandTotal() != $data['total']) {
-                $checkout = $this->buildSimpleCheckoutObject($order, $quoteCurrency);
-            }
+            // strip off trailing zeros from $order->getGrandTotal() (which has 4 decimals by default)
+            $grandOrderTotal = (float)$order->getGrandTotal();
+            // count decimals
+            $decimals = (int) strpos(strrev($grandOrderTotal), ".");
 
+            if ($grandOrderTotal != round($data['total'], $decimals)) {
+                $checkout = $this->buildSimpleCheckoutObject($order, $billingCurrency);
+            }
         }
 
 
-        $checkout['settlementCurrency'] = ($settlementCurrency == '0' || is_null($settlementCurrency)) ? null : $settlementCurrency;
+        $checkout['settlementAsset'] = ($settlementAsset == '0' || is_null($settlementAsset)) ? null : $settlementAsset;
         $checkout['checkoutLanguage'] = ($checkoutLanguage == '0' || is_null($checkoutLanguage)) ? null : $checkoutLanguage;
         $checkout['webhook'] = $this->urlBuilder->getUrl('coinqvest/payment/webhook');
-        $checkout['links']['cancelUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/cancel', ['order_id' => $order->getId()]);
-        $checkout['links']['returnUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/success');
+        $checkout['pageSettings']['cancelUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/cancel', ['order_id' => $order->getId()]);
+        $checkout['pageSettings']['returnUrl'] = $this->urlBuilder->getUrl('coinqvest/payment/success');
         $checkout['charge']['customerId'] = $customerId;
-
-
-        /**
-         * Override the charge object with new exchange rate values
-         * Add a charge item that describes the use of the currency exchange rate
-         */
-
-        if (!is_null($exchangeRate)) {
-
-            $checkout = $this->overrideCheckoutValues($checkout, $exchangeRate, $displayCurrency);
-
-            $newLineItem = array(
-                'description' => sprintf(__('Exchange Rate 1 %1s = %2s %3s'), $order->getOrderCurrencyCode(), $this->numberFormat(1/$exchangeRate, 7), $quoteCurrency),
-                'netAmount' => 0
-            );
-            if (isset($checkout['charge']['shippingCostItems'])) {
-                array_push($checkout['charge']['shippingCostItems'], $newLineItem);
-            } else {
-                $checkout['charge']['shippingCostItems'][] = $newLineItem;
-            }
-
-        }
 
         /**
          * Send the checkout
          */
 
         $response = $client->post('/checkout/hosted', $checkout);
-
         if ($response->httpStatusCode != 200)
         {
             Api\CQLoggingService::write($response->responseBody, 'COINQVEST checkout failed');
             $this->logger->critical('COINQVEST checkout failed', ['exception' => $response->responseBody]);
             throw new LocalizedException(__($response->responseBody));
         }
-
         $data = json_decode($response->responseBody, true);
 
         /**
@@ -258,7 +183,7 @@ class Create extends Action
     private function buildSimpleCheckoutObject($order, $quoteCurrency)
     {
         $checkout['charge'] = array(
-            "currency" => $quoteCurrency,
+            "billingCurrency" => $quoteCurrency,
             "lineItems" => array(
                 array(
                     "description" => "Order No. " . $order->getIncrementId(),
@@ -338,7 +263,7 @@ class Create extends Action
          */
 
         $checkout['charge'] = array(
-            "currency" => $quoteCurrency,
+            "billingCurrency" => $quoteCurrency,
             "lineItems" => $lineItems,
             "discountItems" => !empty($discountItems) ? $discountItems : null,
             "shippingCostItems" => !empty($shippingCostItems) ? $shippingCostItems : null,
@@ -348,34 +273,5 @@ class Create extends Action
         return $checkout;
 
     }
-
-    private function overrideCheckoutValues($checkout, $exchangeRate, $displayCurrency) {
-
-        $checkout['charge']['currency'] = ($checkout['settlementCurrency'] == 'ORIGIN') ? $displayCurrency : $checkout['settlementCurrency'];
-
-        if (isset($checkout['charge']['lineItems']) && !empty($checkout['charge']['lineItems'])) {
-            foreach ($checkout['charge']['lineItems'] as $key => $item) {
-                $checkout['charge']['lineItems'][$key]['netAmount'] = $this->numberFormat($item['netAmount'] / $exchangeRate, 7);
-            }
-        }
-        if (isset($checkout['charge']['discountItems']) && !empty($checkout['charge']['discountItems'])) {
-            foreach ($checkout['charge']['discountItems'] as $key => $item) {
-                $checkout['charge']['discountItems'][$key]['netAmount'] = $this->numberFormat($item['netAmount'] / $exchangeRate, 7);
-            }
-        }
-        if (isset($checkout['charge']['shippingCostItems']) && !empty($checkout['charge']['shippingCostItems'])) {
-            foreach ($checkout['charge']['shippingCostItems'] as $key => $item) {
-                $checkout['charge']['shippingCostItems'][$key]['netAmount'] = $this->numberFormat($item['netAmount'] / $exchangeRate, 7);
-            }
-        }
-
-        return $checkout;
-
-    }
-
-    private function numberFormat($number, $decimals) {
-        return number_format($number, $decimals, '.', '');
-    }
-
 
 }

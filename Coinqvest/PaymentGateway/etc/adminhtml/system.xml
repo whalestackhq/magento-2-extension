@@ -30,15 +30,10 @@
                     <validate>required-entry</validate>
                 </field>
                 <field id="settlement_currency" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Settlement Currency</label>
-                    <source_model>Coinqvest\PaymentGateway\Model\Source\SettlementCurrencies</source_model>
-                    <comment><![CDATA[- The currency that the crypto payments get converted to.<br />- Choose ORIGIN if you want to get credited in the exact same currency your customer paid in (without any conversion). <br />- If you don't choose a currency, payments will be settled in the billing currency <br />- API key and secret must be provided and to view all currency options.]]></comment>
-                </field>
-                <field id="checkout_display_currency" translate="label" type="select" sortOrder="52" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Checkout Page Display Currency</label>
-                    <frontend_model>Coinqvest\PaymentGateway\Block\Adminhtml\Disable</frontend_model>
-                    <source_model>Coinqvest\PaymentGateway\Model\Source\CheckoutDisplayCurrencies</source_model>
-                    <comment>The currency that will be shown on the checkout page. This will only be used if you set the settlement currency to ORIGIN.</comment>
+                    <label>Settlement Asset</label>
+                    <backend_model>Coinqvest\PaymentGateway\Model\Validation\SettlementAssetValidation</backend_model>
+                    <source_model>Coinqvest\PaymentGateway\Model\Source\SettlementAssets</source_model>
+                    <comment><![CDATA[- The currency that the crypto payments get converted to.<br />- Choose ORIGIN if you want to get credited in the exact same currency your customer paid in (without any conversion). <br />- API key and secret must be provided and to view all currency options.]]></comment>
                 </field>
                 <field id="checkout_language" translate="label" type="select" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Checkout Page Language</label>

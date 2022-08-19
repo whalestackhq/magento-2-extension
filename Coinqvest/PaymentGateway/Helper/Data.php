@@ -7,144 +7,35 @@ use Coinqvest\PaymentGateway\Api;
 
 class Data extends AbstractHelper
 {
-
-    public function isCustomStoreCurrency($apiKey, $apiSecret)
+    public function getSettlementAssets($apiKey, $apiSecret)
     {
-        if (empty($apiKey) && empty($apiSecret))
-        {
-            return false;
-        }
-
-        // check if shop currency is a supported fiat or blockchain currency
-        $shopCurrencies = array(
-            $this->getStore()->getBaseCurrencyCode(),
-            $this->getStore()->getCurrentCurrencyCode(),
-            $this->getStore()->getDefaultCurrencyCode()
-        );
-
-        $client = new Api\CQMerchantClient($apiKey, $apiSecret);
-
-        $supportedCurrencies = $this->getSupportedCurrencies($client);
-
-        // if any of BaseCurrency, CurrentCurrency or DefaultCurrency is not in supported currencies, display the field 'Checkout Page Display Currency'
-        foreach ($shopCurrencies as $shopCurrency) {
-            if (!in_array($shopCurrency, $supportedCurrencies)) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-
-    public function isCustomOrderCurrency($apiKey, $apiSecret, $currencyCode)
-    {
-        if (empty($apiKey) && empty($apiSecret))
-        {
-            return false;
-        }
-
-        $client = new Api\CQMerchantClient($apiKey, $apiSecret);
-        $supportedCurrencies = $this->getSupportedCurrencies($client);
-
-        if (!in_array($currencyCode, $supportedCurrencies)) {
-            return true;
-        }
-
-        return false;
-
-    }
-
-    public function getSettlementCurrencies($apiKey, $apiSecret)
-    {
-
-        $currencies = array();
-
-        /**
-         * Init COINQVEST API
-         */
+        $assets = array();
 
         if (!empty($apiKey) && !empty($apiSecret))
         {
             $client = new Api\CQMerchantClient($apiKey, $apiSecret);
 
-            $response = $client->get('/fiat-currencies');
-            $fiat_currencies = json_decode($response->responseBody);
-
+            $response = $client->get('/assets');
             if ($response->httpStatusCode == 200)
             {
-                foreach ($fiat_currencies->fiatCurrencies as $currency)
+                $items = json_decode($response->responseBody);
+                foreach ($items->assets as $asset)
                 {
                     array_push(
-                        $currencies,
-                        array('value' => $currency->assetCode, 'label' => $currency->assetCode . ' - ' . $currency->assetName)
-                    );
-
-                }
-
-            }
-
-            $response = $client->get('/blockchains');
-            $chains = json_decode($response->responseBody);
-
-            if ($response->httpStatusCode == 200)
-            {
-                foreach ($chains->blockchains as $blockchain)
-                {
-                    array_push(
-                        $currencies,
-                        array('value' => $blockchain->nativeAssetCode, 'label' => $blockchain->nativeAssetCode . ' - ' . $blockchain->nativeAssetName)
+                        $assets,
+                        array('value' => $asset->assetCode, 'label' => $asset->assetCode . ' - ' . $asset->name)
                     );
                 }
-
             }
-
         }
-
-        return $currencies;
+        return $assets;
     }
-
-
 
     protected function getStore()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
         return $storeManager->getStore();
-    }
-
-
-    protected function getSupportedCurrencies($client)
-    {
-
-        $currencies = array();
-
-        $response = $client->get('/fiat-currencies');
-        $fiat_currencies = json_decode($response->responseBody);
-
-        if ($response->httpStatusCode == 200)
-        {
-            foreach ($fiat_currencies->fiatCurrencies as $currency)
-            {
-                array_push($currencies, $currency->assetCode);
-            }
-
-        }
-
-        $response = $client->get('/blockchains');
-        $chains = json_decode($response->responseBody);
-
-        if ($response->httpStatusCode == 200)
-        {
-            foreach ($chains->blockchains as $blockchain)
-            {
-                array_push($currencies, $blockchain->nativeAssetCode);
-            }
-
-        }
-
-        return $currencies;
-
     }
 
     public function writeToLog($data, $title = null)

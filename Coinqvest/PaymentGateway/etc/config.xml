@@ -8,8 +8,7 @@
                 <order_status>pending</order_status>
                 <title>Bitcoin and other digital currencies via COINQVEST</title>
                 <api_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <settlement_currency>USD</settlement_currency>
-                <checkout_display_currency>USD</checkout_display_currency>
+                <settlement_currency>USDC</settlement_currency>
                 <show_logo>1</show_logo>
                 <checkout_page_message>You will be redirected to the secure COINQVEST checkout page.</checkout_page_message>
             </coinqvest_paymentgateway>

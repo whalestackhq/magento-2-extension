@@ -3,10 +3,9 @@
 namespace Coinqvest\PaymentGateway\Model\Source;
 
 use Magento\Store\Model\ScopeInterface;
-use Coinqvest\PaymentGateway\Api;
 use Coinqvest\PaymentGateway\Helper\Data;
 
-class CheckoutDisplayCurrencies
+class SettlementAssets
 {
 
     /**
@@ -29,21 +28,24 @@ class CheckoutDisplayCurrencies
 
     public function toOptionArray()
     {
-        return $this->getDisplayCurrencies();
+        return $this->getSettlementAssets();
     }
 
-    public function getDisplayCurrencies()
+    public function getSettlementAssets()
     {
-        if (empty($this->apiKey) || empty($this->apiSecret)) {
-
+        // Set default values
+        if (empty($this->apiKey) || empty($this->apiSecret))
+        {
             return array(
-                array('value' => 'USD', 'label' => 'USD - US Dollar')
+                array('value' => 'USDC', 'label' => 'USDC - USD Coin')
             );
-
         }
 
-        return $this->helper->getSettlementCurrencies($this->apiKey, $this->apiSecret);
+        $assets =$this->helper->getSettlementAssets($this->apiKey, $this->apiSecret);
+        array_unshift($assets , array('value' => '0', 'label' => 'Please select...'));
+        array_push($assets, array('value' => 'ORIGIN', 'label' => 'ORIGIN - Settle to the cryptocurrency your client pays with'));
 
+        return $assets;
     }
 
 
