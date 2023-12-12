@@ -1,0 +1,26 @@
+{
+    "name": "whalestack/paymentgateway",
+    "description": "Whalestack Cryptocurrency Payment Processing for Adobe Commerce (Magento 2)",
+    "type": "magento2-module",
+    "version": "2.0.0",
+    "keywords": [
+        "whalestack", "payments", "crypto", "cryptocurrencies", "stablecoins", "bitcoin", "btc", "ethereum", "eth", "USDC", "EURC", "stellar lumens", "xlm", "litecoin", "ltc", "altcoin", "altcoins"
+    ],
+    "homepage": "https://www.whalestack.com",
+    "license": "Apache 2.0",
+    "authors": [
+        {
+            "name": "Whalestack"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Whalestack\\PaymentGateway\\": ""
+        },
+        "files": [
+            "registration.php"
+        ]
+    }
+}
