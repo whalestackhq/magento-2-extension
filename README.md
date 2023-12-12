@@ -2,13 +2,15 @@
 
 This is the official Magento 2 extension for the [Whalestack](https://www.whalestack.com) cryptocurrency payment gateway. Easily accept Bitcoin, stablecoins (EURC, USDC) and other cryptocurrencies from your customers and directly settle payments in your preferred currency.
 
-The Bitcoin extension for Magento 2 helps you elevate your Magento shop to new heights by offering crypto and stablecoin payment methods. It implements the PHP REST API documented at https://www.whalestack.com/en/api-docs
+The Bitcoin extension for Magento 2 helps you elevate your Magento shop to new heights by offering crypto and stablecoin payment methods. 
+
+It implements the PHP REST API documented at https://www.whalestack.com/en/api-docs
 
 ## Key Features
 
 * Accepts cryptocurrencies and stablecoins payments from customers.
 * Instantly settles in crypto or stablecoins.
-* Sets the product price in your national currency - 45 fiat currencies are available, see full list [here](https://www.whalestack.com/en/currencies).
+* Sets the product price in your national currency - 50 worldwide currencies are available, see full list [here](https://www.whalestack.com/en/currencies).
 * Integrates seemlessly into Magento 2
 * Sets the product price in your national currency.
 * Sets the checkout page in your preferred language.
