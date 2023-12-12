@@ -1,0 +1,7 @@
+<?php if ($block->getWhalestackTxId() != null) { ?>
+    <div class="admin__page-section-item-content" style="margin-top:10px">
+        <p>
+            Order PAID via Whalestack. See payment details <a href="<?= $escaper->escapeUrl('https://www.whalestack.com/en/payment/' . $block->getWhalestackTxId()) ?>" target="_blank">here</a>.
+        </p>
+    </div>
+<?php } ?>

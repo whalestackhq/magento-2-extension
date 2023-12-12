@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <whalestack_paymentgateway>
+                <active>0</active>
+                <model>Whalestack\PaymentGateway\Model\Payment\Whalestackmethod</model>
+                <order_status>pending</order_status>
+                <title>Bitcoin and other digital currencies via Whalestack</title>
+                <api_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <settlement_currency>USDC</settlement_currency>
+                <show_logo>1</show_logo>
+                <checkout_page_message>You will be redirected to the secure Whalestack checkout page.</checkout_page_message>
+            </whalestack_paymentgateway>
+        </payment>
+    </default>
+</config>
