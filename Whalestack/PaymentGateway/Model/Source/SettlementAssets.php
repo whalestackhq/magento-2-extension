@@ -14,6 +14,7 @@ class SettlementAssets
     private $scopeConfig;
     protected $apiKey;
     protected $apiSecret;
+    private $helper;
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,

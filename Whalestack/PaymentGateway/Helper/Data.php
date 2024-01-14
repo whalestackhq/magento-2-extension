@@ -22,7 +22,7 @@ class Data extends AbstractHelper
                 foreach ($items->assets as $asset)
                 {
                     if ($asset->settlement === true) {
-                        array_push($assets, array('value' => $asset->assetCode, 'label' => $asset->assetCode . ' - ' . $asset->name));
+                        array_push($assets, array('value' => $asset->id, 'label' => $asset->assetCode . ' - ' . $asset->name));
                     }
                 }
             }

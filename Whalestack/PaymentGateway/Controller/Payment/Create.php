@@ -23,6 +23,7 @@ class Create extends Action
     protected $urlBuilder;
     protected $apiKey;
     protected $apiSecret;
+    private $helper;
 
     public function __construct(
         Context $context,

@@ -2,7 +2,7 @@
     "name": "whalestack/paymentgateway",
     "description": "Whalestack Cryptocurrency Payment Processing for Adobe Commerce (Magento 2)",
     "type": "magento2-module",
-    "version": "2.0.0",
+    "version": "1.0.0",
     "keywords": [
         "whalestack", "payments", "crypto", "cryptocurrencies", "stablecoins", "bitcoin", "btc", "ethereum", "eth", "USDC", "EURC", "stellar lumens", "xlm", "litecoin", "ltc", "altcoin", "altcoins"
     ],
